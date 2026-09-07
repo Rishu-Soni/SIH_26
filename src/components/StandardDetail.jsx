@@ -3,7 +3,8 @@ import {
   ArrowLeft, Bookmark, Share2, Printer, Maximize2, GitMerge,
   ArrowUpRight, RefreshCw, FileCheck2, Fingerprint, Gavel, ShieldCheck,
   BookOpen, AlertTriangle, Building2, Check, Download, ExternalLink, Search,
-  Lock, Settings, X, ChevronRight, Compass
+  Lock, Settings, X, ChevronRight, Compass, Tag, ChevronDown, PlusCircle,
+  CircleCheckBig, Info
 } from "lucide-react";
 import { INDIAN_STANDARDS } from "../data/standards";
 
@@ -19,6 +20,12 @@ export default function StandardDetail({
   const [showLicenseeDirectory, setShowLicenseeDirectory] = useState(false);
   const [licenseeSearchQuery, setLicenseeSearchQuery] = useState("");
   const [licenseeFilterState, setLicenseeFilterState] = useState("all");
+  const [expandedWhyRef, setExpandedWhyRef] = useState(null);
+  const [addedToTender, setAddedToTender] = useState(false);
+
+  const isCodeOfPractice = standard.standardType === "code_of_practice";
+  const isProduct = standard.standardType === "product";
+  const pageCount = standard.dossier.volume;
 
   const mockLicensees = useMemo(() => [
     { id: "L001", name: "UltraTech Concrete Ltd (RMC)", plant: "Mumbai Central Batching Plant", state: "Maharashtra", license: "CM/L-1904322", status: "compliant" },
@@ -44,6 +51,25 @@ export default function StandardDetail({
     } else {
       navigator.clipboard?.writeText(window.location.href);
       alert(`Standard specification link copied to clipboard:\n${window.location.href}`);
+    }
+  };
+
+  // Compute statutory compliance text based on standard type
+  const statutoryComplianceText = isCodeOfPractice
+    ? `Pursuant to Ministry of Commerce & Industry Quality Control Orders, all structural design projects must substantiate adherence to ${standard.code} via mill test certificates and third-party material verification. Failure constitutes non-compliance under the BIS Act, 2016.`
+    : `Pursuant to Ministry of Commerce & Industry Quality Control Orders, all structural concrete construction projects must substantiate adherence to ${standard.code} via certified cube testing and third-party laboratory verification. Failure constitutes non-compliance under the BIS Act, 2016.`;
+
+  // Validity badge styles
+  const getValidityBadge = (validity) => {
+    switch (validity) {
+      case "Current":
+        return { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", icon: "●" };
+      case "Withdrawn":
+        return { bg: "bg-rose-50", text: "text-rose-600", border: "border-rose-200", icon: "●" };
+      case "Under Revision":
+        return { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", icon: "●" };
+      default:
+        return { bg: "bg-slate-50", text: "text-slate-600", border: "border-slate-200", icon: "●" };
     }
   };
 
@@ -130,6 +156,19 @@ export default function StandardDetail({
                   <span>{standard.code}</span>
                 </div>
 
+                {/* Match Score Badge */}
+                {standard.matchScore && (
+                  <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg text-xs font-bold shadow-2xs">
+                    <span className="text-emerald-700">{standard.matchScore}% Match</span>
+                    <div className="w-14 h-1.5 bg-emerald-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-emerald-500 rounded-full match-score-fill"
+                        style={{ width: `${standard.matchScore}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Reaffirmation Gray Badge */}
                 <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-slate-600 text-xs font-medium shadow-2xs">
                   <RefreshCw className="w-3 h-3 text-slate-400" />
@@ -138,11 +177,19 @@ export default function StandardDetail({
                   </span>
                 </div>
 
-                {/* QCO Mandatory Rose Badge */}
+                {/* QCO Mandatory Rose Badge — only for product standards */}
                 {standard.isQcoApplicable && (
                   <div className="flex items-center gap-1.5 bg-rose-50 border border-rose-200 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider shadow-2xs">
                     <Gavel className="w-3.5 h-3.5 text-rose-600" />
                     <span>MANDATORY QUALITY CONTROL ORDER (QCO) APPLICABLE</span>
+                  </div>
+                )}
+
+                {/* Regulatory Status — for code_of_practice standards (replaces QCO) */}
+                {isCodeOfPractice && !standard.isQcoApplicable && standard.regulatoryStatus && (
+                  <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-2xs">
+                    <BookOpen className="w-3.5 h-3.5 text-blue-600" />
+                    <span>{standard.regulatoryStatus}</span>
                   </div>
                 )}
               </div>
@@ -185,7 +232,7 @@ export default function StandardDetail({
             {/* Badges Row 2 */}
             <div className="flex items-center gap-2">
               <div className="inline-flex items-center gap-1.5 text-slate-600 text-xs bg-white border border-slate-200 px-3 py-1 rounded-lg font-medium shadow-2xs">
-                <GitMerge className="w-3.5 h-3.5 text-slate-400" />
+                <Tag className="w-3.5 h-3.5 text-slate-400" />
                 <span>ICS {standard.category}</span>
               </div>
             </div>
@@ -210,7 +257,7 @@ export default function StandardDetail({
                   </div>
                 </div>
 
-                {/* Executive Summary & Scope Box */}
+                {/* Executive Summary & Scope Box — reads from data */}
                 <div className="bg-[#eff6ff]/40 border border-[#bfdbfe]/80 rounded-xl p-5 relative pl-6 mb-7 shadow-2xs">
                   {/* Vertical Blue Left Line */}
                   <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#1d4ed8] rounded-l-xl"></div>
@@ -221,15 +268,7 @@ export default function StandardDetail({
                     </h2>
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed text-justify">
-                    This benchmark Indian Standard sets down minimum code requirements for the design, durability,
-                    construction tolerances, and structural acceptance of unreinforced plain and cast-in-place or precast reinforced
-                    concrete structures. It firmly establishes the{" "}
-                    <span className="font-bold text-[#1d4ed8]">Limit State Design Method</span> as the governing
-                    design philosophy (incorporating Limit State of Collapse for flexure, compression, shear, and torsion, paired with
-                    Limit State of Serviceability against deflection and cracking). Critical mandates cover exposure classification
-                    from <span className="italic text-slate-800">Mild</span> to{" "}
-                    <span className="italic font-semibold text-rose-600">Extreme marine/chemical environments</span>,
-                    defining non-negotiable water-cement ratio ceilings and minimum binder contents.
+                    {standard.executiveSummary}
                   </p>
                 </div>
 
@@ -246,30 +285,74 @@ export default function StandardDetail({
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {standard.interlinkedStandards.map((dep) => (
-                      <div
-                        key={dep.code}
-                        onClick={() => setActiveInterlinkedCode(activeInterlinkedCode === dep.code ? null : dep.code)}
-                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer group ${
-                          activeInterlinkedCode === dep.code
-                            ? "bg-[#eff6ff] border-blue-400 shadow-xs"
-                            : "bg-slate-50/70 border-slate-200/80 hover:border-blue-300 hover:bg-white"
-                        }`}
-                      >
-                        <div className="w-12 h-11 rounded-lg bg-[#eff6ff] text-[#1d4ed8] font-bold text-xs flex flex-col items-center justify-center shrink-0 border border-[#bfdbfe]/50 group-hover:bg-[#1d4ed8] group-hover:text-white transition-colors">
-                          <span>{dep.code.split(" ")[0]}</span>
-                          <span className="text-[9px] -mt-0.5">{dep.code.split(" ")[1]}</span>
+                    {standard.interlinkedStandards.map((dep) => {
+                      const vBadge = dep.validity ? getValidityBadge(dep.validity) : null;
+                      return (
+                        <div key={dep.code} className="flex flex-col">
+                          <div
+                            onClick={() => setActiveInterlinkedCode(activeInterlinkedCode === dep.code ? null : dep.code)}
+                            className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer group ${
+                              activeInterlinkedCode === dep.code
+                                ? "bg-[#eff6ff] border-blue-400 shadow-xs"
+                                : "bg-slate-50/70 border-slate-200/80 hover:border-blue-300 hover:bg-white"
+                            }`}
+                          >
+                            <div className="w-12 h-11 rounded-lg bg-[#eff6ff] text-[#1d4ed8] font-bold text-xs flex flex-col items-center justify-center shrink-0 border border-[#bfdbfe]/50 group-hover:bg-[#1d4ed8] group-hover:text-white transition-colors">
+                              <span>{dep.code.split(" ")[0]}</span>
+                              <span className="text-[9px] -mt-0.5">{dep.code.split(" ")[1]}</span>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                                <p className="text-xs font-bold text-slate-900 truncate group-hover:text-[#1d4ed8] transition-colors">
+                                  {dep.title}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <p className="text-[10px] text-slate-500 font-normal truncate">
+                                  {dep.description}
+                                </p>
+                                {/* Relationship label */}
+                                {dep.relationship && (
+                                  <span className="inline-flex px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-200 text-[9px] font-semibold whitespace-nowrap">
+                                    {dep.relationship}
+                                  </span>
+                                )}
+                                {/* Validity badge */}
+                                {vBadge && (
+                                  <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded ${vBadge.bg} ${vBadge.text} ${vBadge.border} border text-[9px] font-semibold whitespace-nowrap`}>
+                                    <span className="text-[6px]">{vBadge.icon}</span>
+                                    {dep.validity}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* "Why this reference?" expandable row */}
+                          {dep.whyReferenced && (
+                            <div className="mt-1">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setExpandedWhyRef(expandedWhyRef === dep.code ? null : dep.code);
+                                }}
+                                className="w-full flex items-center gap-1.5 px-3 py-1.5 text-[10px] text-slate-500 hover:text-[#1d4ed8] font-medium transition-colors cursor-pointer rounded-lg hover:bg-slate-50"
+                              >
+                                <ChevronDown className={`w-3 h-3 transition-transform ${expandedWhyRef === dep.code ? "rotate-180" : ""}`} />
+                                <span>Why this reference?</span>
+                              </button>
+                              {expandedWhyRef === dep.code && (
+                                <div className="px-3 pb-2 animate-expand-down">
+                                  <p className="text-[10.5px] text-slate-600 leading-relaxed bg-slate-50 border border-slate-200 rounded-lg p-2.5">
+                                    {dep.whyReferenced}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold text-slate-900 truncate group-hover:text-[#1d4ed8] transition-colors">
-                            {dep.title}
-                          </p>
-                          <p className="text-[10px] text-slate-500 font-normal truncate mt-0.5">
-                            {dep.description}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {activeInterlinkedCode && (
@@ -281,60 +364,74 @@ export default function StandardDetail({
 
                 {/* High-Frequency Field Clauses & Critical Tables */}
                 <div className="mb-6">
-                  <span className="text-[11px] uppercase tracking-wider font-bold text-slate-800 block mb-3">
-                    HIGH-FREQUENCY FIELD CLAUSES & CRITICAL TABLES
-                  </span>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[11px] uppercase tracking-wider font-bold text-slate-800 block">
+                      HIGH-FREQUENCY FIELD CLAUSES & CRITICAL TABLES
+                    </span>
+                    {/* Clause accent color legend */}
+                    <div className="flex items-center gap-3 text-[9px] text-slate-400 font-medium">
+                      <span className="flex items-center gap-1">
+                        <span className="w-2.5 h-2.5 rounded-sm bg-[#1d4ed8]"></span>
+                        Standard clause
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="w-2.5 h-2.5 rounded-sm bg-rose-500"></span>
+                        Safety-critical
+                      </span>
+                    </div>
+                  </div>
                   <div className="space-y-2.5">
-                    {standard.clauses.map((cl) => (
-                      <div
-                        key={cl.clause}
-                        onClick={onOpenCalculator}
-                        className={`flex items-center justify-between p-3.5 rounded-xl bg-slate-50/60 hover:bg-white transition-all border border-slate-200 border-l-4 group cursor-pointer shadow-2xs ${
-                          cl.isDurability ? "border-l-rose-500" : "border-l-[#1d4ed8]"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3.5">
-                          <span
-                            className={`font-mono font-bold text-xs px-2.5 py-1 rounded ${
-                              cl.isDurability
-                                ? "bg-rose-50 text-rose-600 border border-rose-200"
-                                : "bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe]"
-                            }`}
-                          >
-                            {cl.clause}
-                          </span>
-                          <div>
-                            <span className="text-xs font-bold text-slate-900 group-hover:text-[#1d4ed8] transition-colors block">
-                              {cl.title}
+                    {standard.clauses.map((cl) => {
+                      const isCritical = cl.isDurability || cl.isSafetyCritical;
+                      return (
+                        <div
+                          key={cl.clause}
+                          onClick={onOpenCalculator}
+                          className={`flex items-center justify-between p-3.5 rounded-xl bg-slate-50/60 hover:bg-white transition-all border border-slate-200 border-l-4 group cursor-pointer shadow-2xs ${
+                            isCritical ? "border-l-rose-500" : "border-l-[#1d4ed8]"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3.5">
+                            <span
+                              className={`font-mono font-bold text-xs px-2.5 py-1 rounded ${
+                                isCritical
+                                  ? "bg-rose-50 text-rose-600 border border-rose-200"
+                                  : "bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe]"
+                              }`}
+                            >
+                              {cl.clause}
                             </span>
-                            <span className="text-slate-500 text-[11px] block mt-0.5 font-normal">
-                              {cl.description}
-                            </span>
+                            <div>
+                              <span className="text-xs font-bold text-slate-900 group-hover:text-[#1d4ed8] transition-colors block">
+                                {cl.title}
+                              </span>
+                              <span className="text-slate-500 text-[11px] block mt-0.5 font-normal">
+                                {cl.description}
+                              </span>
+                            </div>
                           </div>
+                          <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-[#1d4ed8] group-hover:translate-x-0.5 transition-all shrink-0" />
                         </div>
-                        <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-[#1d4ed8] group-hover:translate-x-0.5 transition-all shrink-0" />
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>
 
-              {/* Active Amendments Strip */}
+              {/* Active Amendments Strip — reads from data, uniform pill styling */}
               <div className="mt-6 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center flex-wrap gap-2">
                   <RefreshCw className="w-3.5 h-3.5 text-[#1d4ed8]" />
                   <span className="text-xs font-bold text-slate-800 mr-1">Active Amendments:</span>
-                  {["No. 1 (2001)", "No. 2 (2005)", "No. 3 (2007)", "No. 4 (2013)"].map((am) => (
+                  {standard.activeAmendments.map((am) => (
                     <span
                       key={am}
                       className="px-2.5 py-0.5 bg-white border border-slate-200 rounded text-xs text-slate-600 font-mono shadow-2xs"
+                      title={am}
                     >
                       {am}
                     </span>
                   ))}
-                  <span className="px-3 py-0.5 bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] rounded-full text-xs font-semibold shadow-2xs">
-                    No. 5 (2019 Incorporating Fly Ash Limits)
-                  </span>
                 </div>
 
                 <button
@@ -380,7 +477,7 @@ export default function StandardDetail({
                       Document Volume
                     </span>
                     <span className="font-serif text-slate-900 text-sm font-bold block mt-0.5">
-                      {standard.dossier.volume}
+                      {pageCount}
                     </span>
                     <span className="text-slate-400 text-[10px] block mt-0.5">
                       Comprehensive Spec
@@ -423,79 +520,106 @@ export default function StandardDetail({
                         STATUTORY COMPLIANCE MANDATE
                       </h3>
                       <p className="text-[11px] text-slate-600 leading-relaxed mt-1.5 text-justify">
-                        Pursuant to Ministry of Commerce & Industry Quality Control Orders, all structural concrete construction projects must substantiate adherence to {standard.code} via certified cube testing and third-party laboratory verification. Failure constitutes non-compliance under the BIS Act, 2016.
+                        {statutoryComplianceText}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Active RMC / Batching Licenses Box */}
-                <div className="bg-white p-4 rounded-xl border border-slate-200 mb-5 shadow-2xs">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                      ACTIVE RMC / BATCHING LICENSES
-                    </span>
-                    <span className="text-[#1d4ed8] font-bold text-xs">
-                      1,842 Plants Live
-                    </span>
+                {/* Active RMC / Batching Licenses Box — ONLY for product standards */}
+                {standard.isQcoApplicable && standard.rmcLicenses && (
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 mb-5 shadow-2xs">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                        {standard.rmcLicenses.title}
+                      </span>
+                      <span className="text-[#1d4ed8] font-bold text-xs">
+                        {standard.rmcLicenses.value}
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex">
+                      <div className="bg-[#1d4ed8] h-full" style={{ width: `${standard.rmcLicenses.compliantPct}%` }}></div>
+                      <div className="bg-rose-500 h-full" style={{ width: `${standard.rmcLicenses.pendingPct}%` }}></div>
+                    </div>
+                    <div className="flex items-center justify-between text-[10.5px] text-slate-600 mt-2.5 font-semibold">
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-[#1d4ed8]"></span>
+                        {standard.rmcLicenses.compliantPct}% Fully Compliant
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                        {standard.rmcLicenses.pendingPct}% Renewal Pending
+                      </span>
+                    </div>
                   </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex">
-                    <div className="bg-[#1d4ed8] h-full" style={{ width: "88%" }}></div>
-                    <div className="bg-rose-500 h-full" style={{ width: "12%" }}></div>
-                  </div>
-                  <div className="flex items-center justify-between text-[10.5px] text-slate-600 mt-2.5 font-semibold">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-[#1d4ed8]"></span>
-                      88% Fully Compliant
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                      12% Renewal Pending
-                    </span>
-                  </div>
-                </div>
+                )}
               </div>
 
-              {/* Action Buttons Stack — Exactly Matching Image 2 */}
+              {/* Action Buttons Stack */}
               <div className="space-y-2.5 pt-2">
-                {/* 1. View Official Watermarked PDF (Solid Blue) */}
+                {/* Accept / Add to Tender — Primary action */}
+                <button
+                  onClick={() => setAddedToTender(!addedToTender)}
+                  className={`w-full py-3 px-4 text-xs rounded-xl font-bold shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    addedToTender
+                      ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                      : "bg-[#0a192f] hover:bg-[#06101e] text-white"
+                  }`}
+                >
+                  {addedToTender ? (
+                    <>
+                      <CircleCheckBig className="w-4 h-4" />
+                      <span>Added to Tender Specification</span>
+                    </>
+                  ) : (
+                    <>
+                      <PlusCircle className="w-4 h-4" />
+                      <span>Accept & Add to Tender</span>
+                    </>
+                  )}
+                </button>
+
+                {/* View Official Watermarked PDF (Solid Blue — primary reference action) */}
                 <button
                   onClick={() => setShowPdfViewer(true)}
                   className="w-full py-3 px-4 bg-[#1d4ed8] hover:bg-[#1e40af] text-white text-xs rounded-xl font-bold shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <BookOpen className="w-4 h-4" />
-                  <span>View Official Watermarked PDF (114 Pages)</span>
+                  <span>View Official Watermarked PDF ({pageCount})</span>
                 </button>
 
-                {/* 2. Inspect Interactive Clauses (White + Blue Border) */}
+                {/* Inspect Interactive Clauses (Secondary outline) */}
                 <button
                   onClick={onOpenCalculator}
-                  className="w-full py-3 px-4 bg-white hover:bg-[#eff6ff] border border-[#1d4ed8] text-[#1d4ed8] text-xs rounded-xl font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3 px-4 bg-white hover:bg-[#eff6ff] border border-slate-200 text-slate-700 hover:text-[#1d4ed8] hover:border-[#1d4ed8] text-xs rounded-xl font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <FileCheck2 className="w-4 h-4" />
                   <span>Inspect Interactive Clauses & Design Tables</span>
                 </button>
 
-                {/* 3. Verify BIS ISI Mark & Approved Licensees (Deep Navy) */}
-                <button
-                  onClick={() => setShowLicenseeDirectory(true)}
-                  className="w-full py-3 px-4 bg-[#0a192f] hover:bg-[#06101e] text-white text-xs rounded-xl font-bold shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>Verify BIS ISI Mark & Approved Licensees</span>
-                </button>
+                {/* Verify BIS ISI Mark — only for product standards */}
+                {standard.isQcoApplicable && (
+                  <button
+                    onClick={() => setShowLicenseeDirectory(true)}
+                    className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Verify BIS ISI Mark & Approved Licensees</span>
+                  </button>
+                )}
 
-                {/* 4. Download SP 34 Detailing Companion Handbook (White + Slate Border) */}
+                {/* Download Companion Handbook (Text link style — demoted) */}
                 <a
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
-                    alert("Downloading SP 34 Concrete Detailing Companion Handbook (18.4 MB official mirror)...");
+                    const doc = standard.companionDoc || { label: "Download Companion Handbook", size: "N/A" };
+                    alert(`Downloading ${doc.label} (${doc.size} official mirror)...`);
                   }}
-                  className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-2xs"
+                  className="w-full py-2 px-4 text-slate-500 hover:text-[#1d4ed8] text-xs font-medium transition-colors flex items-center justify-center gap-2"
                 >
-                  <Download className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Download SP 34 Detailing Companion Handbook</span>
+                  <Download className="w-3.5 h-3.5" />
+                  <span>{standard.companionDoc ? standard.companionDoc.label : "Download Companion Handbook"}</span>
                 </a>
 
                 {/* Sync Note */}
@@ -547,7 +671,7 @@ export default function StandardDetail({
                 <div className="py-2 border-y border-slate-100 text-xs text-slate-500 flex justify-center gap-6">
                   <span>{standard.reaffirmation}</span>
                   <span>ICS {standard.category.split(" ")[1]}</span>
-                  <span>{standard.dossier.volume}</span>
+                  <span>{pageCount}</span>
                 </div>
                 <p className="text-xs text-slate-600 text-justify leading-relaxed bg-slate-50 p-4 rounded-lg">
                   {standard.executiveSummary}
@@ -571,10 +695,10 @@ export default function StandardDetail({
 
             {/* Modal Footer */}
             <div className="p-4 bg-white border-t border-slate-200 flex items-center justify-between">
-              <span className="text-xs text-slate-400">Digital Certification: SHA-256 #891C</span>
+              <span className="text-xs text-slate-400">Digital Certification: {standard.dossier.hash}</span>
               <button
                 onClick={() => {
-                  alert("Preparing complete 114-page watermarked PDF package for download...");
+                  alert(`Preparing complete ${pageCount} watermarked PDF package for download...`);
                   setShowPdfViewer(false);
                 }}
                 className="px-4 py-2 rounded-lg bg-[#1d4ed8] hover:bg-[#1e40af] text-white text-xs font-bold flex items-center gap-2 cursor-pointer shadow-xs"
@@ -587,7 +711,7 @@ export default function StandardDetail({
         </div>
       )}
 
-      {/* Licensee Directory Modal */}
+      {/* Licensee Directory Modal — only accessible for product standards */}
       {showLicenseeDirectory && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200">
@@ -596,8 +720,8 @@ export default function StandardDetail({
               <div className="flex items-center gap-3">
                 <Building2 className="w-5 h-5 text-blue-400" />
                 <div>
-                  <h3 className="font-bold text-sm">BIS Approved Licensees & RMC Batching Registry</h3>
-                  <span className="text-[10px] text-slate-400">IS 456 Statutory Compliance Directory — 1,842 Active Units</span>
+                  <h3 className="font-bold text-sm">BIS Approved Licensees & Product Registry</h3>
+                  <span className="text-[10px] text-slate-400">{standard.code} Statutory Compliance Directory</span>
                 </div>
               </div>
               <button
@@ -671,7 +795,7 @@ export default function StandardDetail({
                     </div>
                   ))
                 ) : (
-                  <p className="text-center py-8 text-xs text-slate-400">No batching licensees match current criteria.</p>
+                  <p className="text-center py-8 text-xs text-slate-400">No licensees match current criteria.</p>
                 )}
               </div>
             </div>

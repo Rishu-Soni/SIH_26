@@ -6,7 +6,10 @@ export const INDIAN_STANDARDS = {
     subtitle: "National Building Code of India Framework Ref: Part 6 / Sec 5",
     category: "ICS 91.100.30 Concrete & Concrete Products",
     reaffirmation: "Reaffirmed 2021 (Fourth Revision)",
+    standardType: "code_of_practice",
     isQcoApplicable: true,
+    matchScore: 94,
+    companionDoc: { label: "Download SP 34 Concrete Detailing Companion Handbook", size: "18.4 MB" },
     description: "Standardization baseline governing structural design, material batching, durability limits, and safety verification across the Republic of India.",
     executiveSummary: "This benchmark Indian Standard sets down minimum code requirements for the design, durability, construction tolerances, and structural acceptance of unreinforced plain and cast-in-place or precast reinforced concrete structures. It firmly establishes the Limit State Design Method as the governing design philosophy (incorporating Limit State of Collapse for flexure, compression, shear, and torsion, paired with Limit State of Serviceability against deflection and cracking). Critical mandates cover exposure classification from Mild to Extreme marine/chemical environments, defining non-negotiable water-cement ratio ceilings and minimum binder contents.",
     interlinkedStandards: [
@@ -49,27 +52,33 @@ export const INDIAN_STANDARDS = {
     code: "IS 800 : 2007",
     title: "General Construction in Steel — Code of Practice",
     subtitle: "National Building Code of India Framework Ref: Part 6 / Sec 6",
-    category: "ICS 77.140.01 Iron and Steel Products",
+    category: "ICS 91.080.10 Metal Structures",
     reaffirmation: "Reaffirmed 2022 (Third Revision)",
-    isQcoApplicable: true,
+    standardType: "code_of_practice",
+    isQcoApplicable: false,
+    matchScore: 96,
+    regulatoryStatus: "Referenced in National Building Code — Part 6",
     description: "General code of practice governing structural steel design, connection detailing, and seismic design rules using limit states across India.",
-    executiveSummary: "This standard applies to the design, fabrication, and erection of structural steelwork using the Limit State Design Method. It lays down instructions for bolt and weld connections, slenderness ratio checks for tension and compression members, lateral torsional buckling rules for beams, and dynamic framing criteria. Crucial factors specify plate girder design, plastic analysis, and durability allowances against high corrosion risks.",
+    executiveSummary: "This benchmark Indian Standard establishes the Limit State Design Method as the governing philosophy for the design, fabrication, and erection of general construction in structural steel. It prescribes comprehensive rules for the design of tension members (net section rupture, block shear), compression members (column buckling curves a through d, effective length factors), and flexural members (lateral torsional buckling, plastic analysis). The standard mandates detailed provisions for bolted connections (bearing-type and friction-grip), welded connections (fillet and butt weld design, weld efficiency factors), and combined connection design. Seismic design provisions for steel structures are included, covering special moment frames, concentrically braced frames, and eccentrically braced frames to ensure ductile behavior under earthquake loading.",
+    companionDoc: { label: "Download SP 6 Handbook for Structural Engineers", size: "12.8 MB" },
     interlinkedStandards: [
-      { code: "IS 2062", title: "Hot Rolled Medium and High Tensile Structural Steel", description: "Structural Steel Grades" },
-      { code: "IS 1367", title: "Technical Supply Conditions for Threaded Fasteners", description: "High-Strength Bolts & Nuts" },
-      { code: "IS 816", title: "Metal Arc Welding in General Construction", description: "Welding Electrode Specs" },
-      { code: "IS 1161", title: "Steel Tubes for Structural Purposes", description: "Hollow Section Standards" }
+      { code: "IS 2062", title: "Hot Rolled Medium and High Tensile Structural Steel", description: "Structural Steel Grades", relationship: "Material spec", validity: "Current", whyReferenced: "Defines the mechanical properties and chemical composition of steel grades (E250, E350, E450) used in all structural members designed under IS 800." },
+      { code: "IS 1367", title: "Technical Supply Conditions for Threaded Fasteners", description: "High-Strength Bolts & Nuts", relationship: "Normatively referenced", validity: "Current", whyReferenced: "Specifies property classes (8.8, 10.9) and proof-load requirements for bolts used in bearing-type and friction-grip connections per Section 10." },
+      { code: "IS 816", title: "Metal Arc Welding in General Construction", description: "Welding Electrode Specs", relationship: "Welding spec", validity: "Current", whyReferenced: "Governs electrode classification, welding procedures, and inspection standards for all fillet and butt welds designed under IS 800 connection clauses." },
+      { code: "IS 1161", title: "Steel Tubes for Structural Purposes", description: "Hollow Section Standards", relationship: "Testing method", validity: "Under Revision", whyReferenced: "Provides dimensional tolerances and mechanical properties for CHS, SHS, and RHS sections used in tubular member and truss design." }
     ],
     clauses: [
-      { clause: "Cl. 5", title: "General Design Requirements & Serviceability Limits", description: "Maximum deflection, structural stability, dynamic effects, and corrosion allowance details." },
-      { clause: "Cl. 7", title: "Design of Tension Members (Effective Area & Sectional Limits)", description: "Net section rupture, block shear failure calculations, and slenderness constraints." },
-      { clause: "Cl. 8", title: "Design of Compression Members (Column Buckling curves)", description: "Effective length, axial compression resistance, and categorization into column curves (a, b, c, d)." },
-      { clause: "Cl. 10", title: "Connections (Bolting, Welding, and Tension Joints)", description: "Shear/bearing bolts, welding size limits, weld efficiency factors, and joint detailing rules.", isDurability: true }
+      { clause: "Sec. 3", title: "General Requirements (Materials, Fabrication & Erection)", description: "Steel grades, material properties (yield stress, ultimate stress), fabrication tolerances, and erection standards.", isSafetyCritical: false },
+      { clause: "Sec. 6", title: "Design of Tension Members (Net Section & Block Shear)", description: "Net effective area calculations, block shear capacity checks, and slenderness ratio limits for tension members.", isSafetyCritical: false },
+      { clause: "Sec. 7", title: "Design of Compression Members (Column Buckling Curves)", description: "Effective length factors, axial compression resistance, and categorization into column curves (a, b, c, d).", isSafetyCritical: false },
+      { clause: "Sec. 10", title: "Connections (Bolted, Welded & Combined Joints)", description: "Shear/bearing bolt design, friction-grip bolts, fillet/butt weld sizing, weld efficiency factors, and joint detailing.", isSafetyCritical: true }
     ],
     activeAmendments: [
       "No. 1 (2012)",
-      "No. 2 (2015)",
-      "No. 3 (2018 Incorporating Fire Protection Guidelines)"
+      "No. 2 (2013)",
+      "No. 3 (2015)",
+      "No. 4 (2017)",
+      "No. 5 (2019) — Revised seismic detailing provisions"
     ],
     pdfLinkText: "View Official Watermarked PDF (138 Pages)",
     dossier: {
@@ -79,12 +88,6 @@ export const INDIAN_STANDARDS = {
       gazetteRef: "No. 102-S",
       gazetteTitle: "Central Govt Mirror",
       hash: "SHA-256 #A49F"
-    },
-    rmcLicenses: {
-      title: "Certified Fabrication Plants",
-      value: "954 Fabricators Live",
-      compliantPct: 91,
-      pendingPct: 9
     }
   },
   "is-1893": {
@@ -94,7 +97,10 @@ export const INDIAN_STANDARDS = {
     subtitle: "National Building Code of India Framework Ref: Part 6 / Sec 1",
     category: "ICS 91.120.25 Seismic and Vibration Protection",
     reaffirmation: "Reaffirmed 2021 (Sixth Revision)",
-    isQcoApplicable: true,
+    standardType: "code_of_practice",
+    isQcoApplicable: false,
+    matchScore: 88,
+    companionDoc: { label: "Download SP 22 Handbook on Earthquake Resistant Design", size: "9.2 MB" },
     description: "Seismic acceleration baseline, zone factors, soil coefficients, and structural response spectra for seismic loading.",
     executiveSummary: "This critical standard provides the formulas, seismic zone map, and design acceleration spectra used to evaluate earthquake forces on buildings and structures in India. It defines Zones II, III, IV, and V with corresponding Zone Factors (Z). Design philosophy mandates preventing collapse under Maximum Considered Earthquake (MCE) and limiting structural damage under Design Basis Earthquake (DBE). Uses response reduction factors and soil coefficients (Types I, II, III) to determine Sa/g.",
     interlinkedStandards: [
@@ -136,7 +142,10 @@ export const INDIAN_STANDARDS = {
     subtitle: "National Building Code of India Framework Ref: Part 6 / Sec 1B",
     category: "ICS 91.120.25 Seismic Protection & Reinforced Concrete",
     reaffirmation: "Reaffirmed 2021 (Third Revision)",
-    isQcoApplicable: true,
+    standardType: "code_of_practice",
+    isQcoApplicable: false,
+    matchScore: 82,
+    companionDoc: { label: "Download SP 34 Concrete Detailing Companion Handbook", size: "18.4 MB" },
     description: "Mandatory structural reinforcement detailing specifications to survive strong ground motions in High Seismic Zones.",
     executiveSummary: "This standard specifies detailing requirements for reinforced concrete structures subjected to earthquake forces, ensuring high dissipation capability and ductility. It is mandatory for structures in Seismic Zones III, IV, and V. Highlights include 135-degree hoops with 10d extensions, beam-column connection confinement, minimum dimensions of columns, reinforcement ratios, and special shear wall detailing.",
     interlinkedStandards: [
